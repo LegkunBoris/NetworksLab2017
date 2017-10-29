@@ -1,0 +1,4 @@
+This is Help
+Commands:
+recon - to recconect to the server
+decon - disconect from server
