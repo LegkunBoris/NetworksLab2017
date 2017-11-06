@@ -1,0 +1,5 @@
+recon - to recconect to the server
+decon - disconect from server
+forums - to get list of forums
+open <forum> - to open <forum>
+quit - to disconnect from the server
