@@ -1,6 +1,6 @@
 #include "client.h"
 int readn(int *socket,char* output,int mode){
-    char buffer[256];
+    char buffer[BUFFLEN];
     int length = 0;
     *output = (char*)malloc(length);
     memset(output,0,strlen(output));

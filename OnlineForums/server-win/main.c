@@ -8,18 +8,18 @@
 #include <stdio.h>
 #include <stdint.h>
 
-
-#define HELP    1
-#define CREATE  2
-#define QUIT    3
-#define FORUMS  4
-#define OPEN    5
-#define NAME    6
+#define HELP    100
+#define CREATE  200
+#define QUIT    300
+#define FORUMS  400
+#define OPEN    500
+#define NAME    600
 
 #define MAXCLIENTS  5
 #define MAXFORUMS   1000
 #define BUFFLEN     512
 
+const char *OpenErrorCode = "Error opening file";
 struct user{
     int socket;
     char *name;
@@ -57,7 +57,7 @@ int loadForums(){
     int count = 0;
     FILE *fp;
     if ((fp=fopen("forums.txt", "r") )==NULL) {
-        printf("Cannot open file.\n");
+        printf("%s %d",OpenErrorCode,1);
         return 1;
     }
     char tmp[BUFFLEN];
@@ -204,9 +204,9 @@ start:  free(buffer);
         char *rest = buffer;
 
         if(token = strtok_r(rest, " ", &rest))
-            com._command = decodeString(token);
-        if(token = strtok_r(rest, " ", &rest))
-            com._key = decodeString(token);
+            com._command = atoi(token);
+        token = strtok_r(rest, " ", &rest);
+        printf("int of command:[%d] string command:[%s] token:[%s]\n", com._command, token);
 
         switch(com._command){
          case CREATE:{
