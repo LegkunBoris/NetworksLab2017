@@ -18,10 +18,13 @@ rec:if((csocket = init(argc,argv)) < 1)
 
     printf("Enter request (""help"" to get description):\n");
     while(TRUE){
+        printf("in while\n");
         char buffer[BUFFLEN];
         memset(buffer,0,strlen(buffer));
         printf("%s:",name);
-        fgets(buffer,BUFFLEN,stdin);
+readFromConsole:fgets(buffer,BUFFLEN,stdin);
+        if((strlen(buffer) - 1) == 0)
+            goto readFromConsole;
         buffer[strlen(buffer) - 1] = '\0';
         int command;
         char *token;

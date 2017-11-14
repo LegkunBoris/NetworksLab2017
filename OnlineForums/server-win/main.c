@@ -53,6 +53,16 @@ DWORD WINAPI connection_handler(void *args);
 char* concatStrings(char *dist, char *source);
 char* readfromfile(const char *path);
 
+int SendBytes(char *message)
+{
+    int len = htonl(strlen(message));
+    int n = send(csocket, &len, sizeof(len),0); // send on Windows
+    if (n < 0) {
+        perror("ERROR writing to socket");
+        exit(1);
+    }
+}
+
 int loadForums(){
     int count = 0;
     FILE *fp;
