@@ -6,6 +6,7 @@
 #include <string.h>
 #include <windows.h>
 #include <stdint.h>
+
 #define BUFFLEN 512
 #define RECON   55
 #define HELP    100
@@ -24,4 +25,5 @@ DWORD WINAPI chat_handler(void *args);
 
 char name[80];
 int csocket;
+
 #endif // CLIENT_H
