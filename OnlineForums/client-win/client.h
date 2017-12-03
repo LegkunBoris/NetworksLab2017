@@ -25,5 +25,5 @@ DWORD WINAPI chat_handler(void *args);
 
 char name[80];
 int csocket;
-
+char *forum;
 #endif // CLIENT_H

@@ -201,6 +201,7 @@ int OpenFunction(int command, char *token)
     if(strcmp(answer, token) == 0)
     {
         HANDLE thread = CreateThread(NULL,0,chat_handler,NULL,0,NULL);
+        forum = token;
         while(TRUE)
         {
             char message[BUFFLEN];

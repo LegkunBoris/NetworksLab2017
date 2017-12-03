@@ -8,6 +8,6 @@ DWORD WINAPI chat_handler(void *args)
 
         int n = readn(csocket, answer,0);
 
-        //printf("\n%s\n%s:%s",answer, name, line);
+        printf("\n%s\n[%s]%s:",answer, forum, name);
     }
 }

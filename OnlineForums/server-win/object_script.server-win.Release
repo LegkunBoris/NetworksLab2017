@@ -1,0 +1,13 @@
+INPUT(
+./release\main.o
+./release\decodestring.o
+./release\sendbytes.o
+./release\sendint.o
+./release\loadforums.o
+./release\readn.o
+./release\connectinohandler.o
+./release\writemessagetofile.o
+./release\readfromfile.o
+./release\cancatstrings.o
+./release\forumshandler.o
+);
