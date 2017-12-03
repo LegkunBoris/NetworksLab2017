@@ -1,5 +1,4 @@
-#include "server.h"
-
+#include "client.h"
 int SendInt(int socket, int i)
 {
     int intToSend = htonl(i);
@@ -8,6 +7,5 @@ int SendInt(int socket, int i)
         perror("ERROR writing to socket from functino [SendInt]\n");
         return -1;
     }
-    //printf("Int [%d] send\n",i);
     return 1;
 }

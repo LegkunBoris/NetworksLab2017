@@ -1,4 +1,3 @@
 hanzo:Hi all
 help:das
 help:sck
-help:dick

@@ -10,7 +10,11 @@ SOURCES += main.c \
     client.c \
     sconcat.c \
     decode.c \
-    chathandler.c
+    chathandler.c \
+    sendbytes.c \
+    sendint.c \
+    readbytes.c \
+    readlength.c
 
 HEADERS += \
     client.h

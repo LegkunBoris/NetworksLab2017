@@ -12,6 +12,10 @@ int decodeString(char *str) {
         return OPEN;
     else if(strcmp(str, "create") == 0)
         return CREATE;
+    else if(strcmp(str, "online") == 0)
+        return ONLINE;
+    else if(strcmp(str, "ie") == 0)
+        return DISPLAY;
     else
         return -1;
 }

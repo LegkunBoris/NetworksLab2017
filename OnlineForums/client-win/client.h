@@ -15,6 +15,9 @@
 #define FORUMS  400
 #define OPEN    500
 #define NAME    600
+#define UNAME   601
+#define ONLINE  700
+#define DISPLAY 800
 
 int readn(int *socket,char* output,int mode);
 int decodeString(char *str);

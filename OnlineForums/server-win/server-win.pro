@@ -13,11 +13,14 @@ SOURCES += main.c \
     writemessagetofile.c \
     readfromfile.c \
     cancatstrings.c \
-    forumshandler.c
+    forumshandler.c \
+    readmessagelength.c \
+    readbytes.c
 
 DISTFILES += \
     forums.txt \
-    help.txt
+    help.txt \
+    users.txt
 
 HEADERS += \
     server.h

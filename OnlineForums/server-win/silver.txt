@@ -1,6 +1,0 @@
-Gekai:hi all
-Gekai:Im not here
-Gekai:bye --quit
-Shinkai:hi
-Gekai:okey
-open silver

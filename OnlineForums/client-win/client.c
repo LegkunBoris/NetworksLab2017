@@ -7,23 +7,14 @@ rec:if((csocket = init(argc,argv)) < 1)
         printf("Init connection error\n");
     else
         printf("Connected\n");
+nm: printf("Enter ur name:");
+    int n = NameFunction();
 
-    printf("Enter ur name:");
-
-    scanf("%s",name);
-
-    char nameToChar[BUFFLEN];
-
-    itoa(NAME,nameToChar,10);
-
-    int n;
-
-    if(n = send(csocket,nameToChar, strlen(nameToChar),0) < 0)
-        printf("Sending [name] error\n");
-
-    if(n = send(csocket,name, strlen(name),0) < 0)
-        printf("Sending error [%s]\n",name);
-
+    if(n < 0)
+    {
+        printf("Unregistered user!\n");
+        goto nm;
+    }
 
     printf("Enter request (""help"" to get description):\n");
     while(TRUE){
@@ -50,6 +41,16 @@ readFromConsole:fgets(buffer,BUFFLEN,stdin);
         switch(command){
             case CREATE:{
                 int n = CreateFunction(command,token);
+                break;
+            }
+            case DISPLAY:
+            {
+                int n = DisplayFunction(command);
+                break;
+            }
+            case ONLINE:
+            {
+                int n = OnlineFunction(command);
                 break;
             }
             case OPEN:{
@@ -80,6 +81,66 @@ readFromConsole:fgets(buffer,BUFFLEN,stdin);
         }
     }
     return 1;
+}
+char* GenerateCommand(int com, char* key)
+{
+
+    char comToChar[BUFFLEN];
+
+    itoa(com,comToChar,10);
+
+    char *tmp = "";
+    char *command = concatStrings(tmp, comToChar);
+    command = concatStrings(command, " ");
+    command = concatStrings(command, key);
+}
+int OnlineFunction(int command)
+{
+    char cmd[BUFFLEN];
+    char answer[BUFFLEN];
+
+    itoa(command, cmd,10);
+
+    if(SendBytes(csocket,cmd) < 0)
+        printf("Error sending [%d]\n",cmd);
+
+    int numOfUsers = GetReadCount();
+
+    printf("Current online [%d]:\n",numOfUsers);
+
+    for(int i = 0;i < numOfUsers;i++)
+    {
+        int bytes = ReadBytes(answer);
+
+        answer[bytes] = '\0';
+
+        if(bytes < 0)
+            printf("Reading ERROR\n");
+
+        printf("[%s]\n",answer);
+    }
+    return 1;
+}
+
+int NameFunction()
+{
+    scanf("%s",name);
+
+    int n;
+
+    char *command = GenerateCommand(NAME,name);
+
+    if(n = send(csocket,command, strlen(command),0) < 0)
+        printf("Sending error [%s]\n",name);
+
+    char answer[BUFFLEN];
+
+    n = ReadBytes(answer);
+
+    int i = atoi(answer);
+    if(i == NAME)
+        return 1;
+    return -1;
 }
 
 int QuitFunction(int command)
@@ -124,6 +185,41 @@ int HelpFunction(int command)
         return -1;
     return 1;
 }
+int DisplayFunction(int command)
+{
+    char cmd[BUFFLEN];
+    char answer[BUFFLEN];
+
+    itoa(command, cmd,10);
+
+    if(SendBytes(csocket,cmd) < 0)
+        printf("Error sending [%d]\n",cmd);
+
+    int numOfForums = GetReadCount();
+
+    for(int i = 0;i < numOfForums;i++)
+    {
+        char forum[BUFFLEN];
+
+        int n = ReadBytes(forum);
+        forum[n] = '\0';
+        printf("[%s]:\n",forum);
+        int numOfMessages = GetReadCount();
+
+        for(int j = 0; j < numOfMessages;j++)
+        {
+            int bytes = ReadBytes(answer);
+
+            answer[bytes] = '\0';
+
+            if(bytes < 0)
+                printf("Reading ERROR\n");
+
+            printf("\t%s\n",answer);
+        }
+    }
+    return 1;
+}
 int ForumsFunction(int command)
 {
     char cmd[BUFFLEN];
@@ -131,14 +227,10 @@ int ForumsFunction(int command)
 
     itoa(command, cmd,10);
 
-    if(send(csocket,cmd, strlen(cmd),0) < 0)
+    if(SendBytes(csocket,cmd) < 0)
         printf("Error sending [%d]\n",cmd);
 
-    int receivedInt = 0;
-
-    int n = recv(csocket, &receivedInt, sizeof(receivedInt),0);
-
-    int numOfForums = ntohl(receivedInt);
+    int numOfForums = GetReadCount();
 
     printf("Forums[%d]:\n",numOfForums);
 
@@ -148,55 +240,24 @@ int ForumsFunction(int command)
 
         answer[bytes] = '\0';
 
-        if(n < 0)
+        if(bytes < 0)
             printf("Reading ERROR\n");
 
         printf("[%s]\n",answer);
     }
     return 1;
 }
-int GetReadCount()
+
+int OpenFunction(int com, char *token)
 {
-    int bytesToReceive = 0;
+    char *command = GenerateCommand(com, token);
 
-    int n = recv(csocket, &bytesToReceive, sizeof(bytesToReceive),0);
-
-    if(n < 0)
-        printf("Reading ERROR for function GetReadCount\n");
-
-    int bytes = ntohl(bytesToReceive);
-
-    return bytes;
-}
-
-int ReadBytes(char *answer)
-{
-    int bytes = GetReadCount();
-
-    int n = recv(csocket,answer,bytes,0);
-
-    if(n < 0)
-        printf("Reading ERROR for function ReadBytes\n");
-
-    return bytes;
-}
-
-int OpenFunction(int command, char *token)
-{
-    char cmd[BUFFLEN];
-
-    itoa(command, cmd,10);
-
-    char *msg = concatStrings(cmd," ");
-
-    msg = concatStrings(msg, token);
-
-    if(send(csocket,msg, strlen(msg),0) < 0)
-        printf("Sending %d error for OpenFunction\n",msg);
+    if(SendBytes(csocket,command) < 0)
+        printf("Sending %d error for OpenFunction\n",command);
 
     char answer[BUFFLEN];
 
-    int n = readn(csocket, answer,0);
+    int n = ReadBytes(answer);
 
     if(strcmp(answer, token) == 0)
     {
@@ -216,7 +277,7 @@ int OpenFunction(int command, char *token)
 
             if(strcmp(message,"--quit") == 0)
             {
-                if(send(csocket,message, strlen(message),0) < 0)
+                if(SendBytes(csocket,message) < 0)
                     printf("Sending %d error\n",message);
                 break;
             }
@@ -224,13 +285,13 @@ int OpenFunction(int command, char *token)
             messageToSend = concatStrings(name,":");
             messageToSend = concatStrings(messageToSend,message);
 
-            if(send(csocket,messageToSend, strlen(messageToSend),0) < 0)
+            if(SendBytes(csocket,messageToSend) < 0)
                 printf("Sending %d error\n",messageToSend);
         }
     }
     else
     {
-        printf("Forums [%s] doesnt exist.\n",token);
+        printf("Forum [%s] doesnt exist.\n",token);
         return -1;
     }
     return 1;

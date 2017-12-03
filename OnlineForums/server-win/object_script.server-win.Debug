@@ -1,0 +1,15 @@
+INPUT(
+./debug\main.o
+./debug\decodestring.o
+./debug\sendbytes.o
+./debug\sendint.o
+./debug\loadforums.o
+./debug\readn.o
+./debug\connectinohandler.o
+./debug\writemessagetofile.o
+./debug\readfromfile.o
+./debug\cancatstrings.o
+./debug\forumshandler.o
+./debug\readmessagelength.o
+./debug\readbytes.o
+);

@@ -20,3 +20,22 @@ char* readfromfile(const char *path)
     return msg;
 
 }
+int readlinesfromfile(const char *path)
+{
+    FILE *fp;
+    if ((fp=fopen(path, "r") )==NULL) {
+        printf("Cannot open file.\n");
+        return 1;
+    }
+
+    int lines = 0;
+    char tmp[BUFFLEN];
+    while(fgets(tmp, sizeof tmp, fp)) {
+        lines++;
+    };
+
+    fclose(fp);
+
+    return lines;
+
+}
