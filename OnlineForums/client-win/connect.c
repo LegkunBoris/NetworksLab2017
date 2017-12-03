@@ -1,3 +1,0 @@
-int connect(int *socket){
-
-}
