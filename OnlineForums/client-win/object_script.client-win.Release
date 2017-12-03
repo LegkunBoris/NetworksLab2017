@@ -1,0 +1,14 @@
+INPUT(
+./release\main.o
+./release\readn.o
+./release\init.o
+./release\closesock.o
+./release\client.o
+./release\sconcat.o
+./release\decode.o
+./release\chathandler.o
+./release\sendbytes.o
+./release\sendint.o
+./release\readbytes.o
+./release\readlength.o
+);

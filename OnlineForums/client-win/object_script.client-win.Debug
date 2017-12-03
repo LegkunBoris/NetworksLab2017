@@ -1,0 +1,14 @@
+INPUT(
+./debug\main.o
+./debug\readn.o
+./debug\init.o
+./debug\closesock.o
+./debug\client.o
+./debug\sconcat.o
+./debug\decode.o
+./debug\chathandler.o
+./debug\sendbytes.o
+./debug\sendint.o
+./debug\readbytes.o
+./debug\readlength.o
+);
