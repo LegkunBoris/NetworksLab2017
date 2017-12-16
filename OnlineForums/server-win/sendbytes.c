@@ -1,5 +1,4 @@
 #include "server.h"
-
 int SendBytes(int socket, char *message)
 {
     int n = SendInt(socket, strlen(message));
@@ -8,6 +7,5 @@ int SendBytes(int socket, char *message)
         perror("ERROR writing to socket");
         return -1;
     }
-    //printf("Sent [%s] len[%d]\n",message,n);
     return n;
 }

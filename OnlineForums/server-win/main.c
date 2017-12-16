@@ -1,6 +1,4 @@
-
 #include "server.h"
-
 int main(int argc , char *argv[])
 {
     WSADATA wsa;
@@ -35,9 +33,14 @@ int main(int argc , char *argv[])
     forumsCount         = 0;
     usersOnline         = 0;
     nextUser            = 0;
-    forumsCount         = loadForums();
+    registeredUsers     = LoadRegisteredUsers();
+    forumsCount         = LoadForums();
+
+//    for(int i = 0; i < forumsCount;i++)
+//        printf("[%d][%s]\n",i,forums[i]);
 
     printf("forums count:[%d]\n", forumsCount);
+    printf("Registered [%d] users.\n",registeredUsers);
 
     while( (accSocket = accept(serverSocket, (struct sockaddr *)&client, (socklen_t*)&clilen)) )
     {
@@ -45,10 +48,10 @@ int main(int argc , char *argv[])
         args.ip         = inet_ntoa(client.sin_addr);
         args.port       = ntohs(client.sin_port);
         args.socket     = accSocket;
-        HANDLE thread   = CreateThread(NULL,0,connection_handler,&args,0,NULL);
+        HANDLE thread   = CreateThread(NULL,0,ConnectionHandler,&args,0,NULL);
         usersOnline     = usersOnline + 1;
 
-        printf("Thread created for: %s; on Port: %d\n",inet_ntoa(client.sin_addr) ,ntohs(client.sin_port));
+        printf("Thread created for: %s; on Port: %d,socket :[%d]\n",inet_ntoa(client.sin_addr) ,ntohs(client.sin_port),accSocket);
         printf("Current online : %d\n",usersOnline);
     }
 

@@ -1,6 +1,5 @@
 #include "server.h"
-
-int decodeString(char *str) {
+int DecodeString(char *str) {
     if(strcmp(str, "help") == 0)
         return HELP;
     else if(strcmp(str, "quit") == 0)

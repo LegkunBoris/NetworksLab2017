@@ -1,5 +1,5 @@
 #include "client.h"
-int init(int argc , char *argv[]){
+int Init(int argc , char *argv[]){
     WSADATA wsa;
     SOCKET csocket;
     struct sockaddr_in server;

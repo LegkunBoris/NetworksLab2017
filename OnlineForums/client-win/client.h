@@ -18,13 +18,12 @@
 #define UNAME   601
 #define ONLINE  700
 #define DISPLAY 800
-
-int readn(int *socket,char* output,int mode);
-int decodeString(char *str);
-int init(int argc , char *argv[]);
-void *connection_handler(void *args);
-char* concatStrings(char *dist, char *source);
-DWORD WINAPI chat_handler(void *args);
+#define MAXCOUNT 10000
+int DecodeString(char *str);
+int Init(int argc , char *argv[]);
+void *ConnectionHandler(void *args);
+char *ConcatStrings(char *dist, char *source);
+DWORD WINAPI ChatHandler(void *args);
 
 char name[80];
 int csocket;

@@ -2,13 +2,8 @@
 int ReadMessageLength(int socket)
 {
     int bytesToReceive = 0;
-
-    int n = recv(socket, &bytesToReceive, sizeof(bytesToReceive),0);
-    printf("Waiting message len:[%d]", bytesToReceive);
+    int n = recv(socket, &bytesToReceive, sizeof(int32_t),0);
     if(n < 0)
         printf("Reading ERROR for function ReadMessageLength\n");
-
-    int bytes = ntohl(bytesToReceive);
-
-    return bytes;
+    return ntohl(bytesToReceive);
 }

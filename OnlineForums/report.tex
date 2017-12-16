@@ -1,0 +1,163 @@
+\documentclass[a4paper,12pt]{extarticle}
+\usepackage[utf8x]{inputenc} 
+\usepackage[left=2.5cm, top=2cm, right=1cm, bottom=20mm, nohead, nofoot]{geometry}
+\usepackage[T1,T2A]{fontenc}
+\usepackage[russian]{babel}
+\usepackage{hyperref}
+\usepackage{indentfirst}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{here}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\begin{document}
+	\begin{center}		% выравнивание по центру
+
+		\large Санкт-Петербургский политехнический университет Петра Великого\\
+		\large Институт компьютерных наук и технологий \\
+		\large Кафедра компьютерных систем и программных технологий\\[5cm]
+		% название института, затем отступ 5см
+		
+		\huge Сети и телекоммуникации\\[0.5cm] % название работы, затем отступ 0,5см
+		\large Отчет по лабораторной работе\\[0.1cm]
+		\large "Сетевые технологии"\\[4cm]
+
+	\end{center}
+	\begin{flushright} % выравнивание по правому краю
+		\begin{minipage}{0.35\textwidth} % врезка в половину ширины текста
+			\begin{flushleft} % выровнять её содержимое по левому краю
+
+				\large\textbf{Работу выполнил:}\\
+				\large Легун Б.А.\\
+				\large {Группа:} 43501/1\\
+				
+				\large \textbf{Преподаватель:}\\
+				\large Алексюк А.О.\\
+
+			\end{flushleft}
+		\end{minipage}
+	\end{flushright}
+	
+	\vfill % заполнить всё доступное ниже пространство
+
+	\begin{center}
+	\large Санкт-Петербург\\
+	\large \the\year % вывести дату
+	\end{center} % закончить выравнивание по центру
+
+\thispagestyle{empty} % не нумеровать страницу
+\newpage
+\section{Цель работы}
+Разработать приложение «Сетевой форум».
+Платформа сервера: Windows.
+Платформа клиента: Unix.
+
+\section{Реализованые функции}
+\begin{enumerate}
+\item Получения списка команд 		
+\item Создание нового форума 			 
+\item Отключения от сервера 			
+\item Получение списка доступных форумов
+\item Открытие форума 				
+\item Выход с форума
+\item Авторизация 		
+\item Получения списка пользователей онлайн
+\item Получение иерархии форума		
+\end{enumerate}
+
+\section{Методы обмена сообщениями}
+\begin{itemize}
+\item SendBytes() :
+\begin{itemize}
+\item SendInt() - отправка длины сообщения
+\item send() - отправка самого сообщения
+\end{itemize}
+\item ReadBytes() :
+\begin{itemize}
+\item ReadInt() - чтение ожидаемой длинны сообщения
+\item recv() - чтение самого сообщения
+\end{itemize}
+\end{itemize}
+\section{Формат команды}
+Команды представляют из себя текстовые сообщения, в которых команда и ключ разделены пробелом.
+\begin{center}\large\textbf{[CODE KEY]}\end{center}
+Обмен сообщений происходит по следующему алгоритму:
+\newline
+Со стороны клиента:
+\begin{enumerate}
+\item Отправка длины сообщения
+\item Отправка сообщения
+\end{enumerate}
+Со стороны серера:
+\begin{enumerate}
+\item Прием длины ожидаемого сообщения
+\item Прием сообщения
+\item Дешифрация сообщения
+\item Выполнения команды
+\end{enumerate}
+\section{Прототипы функций команд:}
+\begin{enumerate}
+\item int HelpFunction(int command)
+\item int CreateFunction(int command, char *argument)
+\item int QuitFunction(int command)
+\item int ForumsFunction(int command)
+\item int OpenFunction(int command, char *argument)
+\item int DisplayFunction(int command)
+\item int OnlineFunction(int command)
+\end{enumerate}
+
+\section{Команды:}
+\begin{enumerate}
+\item help – получение полного списка команд с сервера
+\item create [forum name] - создание нового форума с именем forum name
+\item quit -  отключение от сервера
+\item forums – получения списка доступных форумов
+\item open [forum name] – открытие форума с именем forum name
+\item --quit – выйти из форума
+\item ie - запросить иерархию форума
+\item online - запросить список пользователей онлайн
+\end{enumerate}
+
+\section{Описание}
+Для запуска севера используется строка вида:
+\begin{center}\large\textbf{[server.exe port]}\end{center}
+где:
+\newline
+\textbf{server.exe} - скомпилированый исполняемый файл сервера
+\newline
+\textbf{port} - порт который будет прослушивать сервер
+\newline
+Для запуска клиента используется строка вида:
+\begin{center}\large\textbf{[client.exe ipAdr port]}\end{center}
+где:
+\newline
+\textbf{client.exe} - скомпилированый исполняемый файл клиента
+\newline
+\textbf{ipAdr} - адрес на котором запущен TCP-сервер
+\newline
+\textbf{port} - порт который будет прослушивать сервер
+\newline
+При первом запуске потребуется ввести имя пользователя, после прохождения проверки клиент будет подключен к серверу.
+Максимальное количество поддерживаемых форумов:
+\begin{verbatim}
+\#define MAXFORUMS       1000
+\end{verbatim}
+Максимальное количество поддерживаемых клиентов:
+\begin{verbatim}
+\#define MAXCLIENTS      5
+\end{verbatim}
+Используемые библиотеки сервера:
+\begin{verbatim}
+\#include <winsock2.h>
+\#include <windows.h>
+\end{verbatim}
+Тип сокета:
+\begin{verbatim}
+WSADATA wsa;
+SOCKET serverSocket,accSocket;
+\end{verbatim}
+
+\end{document}

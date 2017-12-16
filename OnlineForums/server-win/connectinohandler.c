@@ -1,148 +1,69 @@
 #include "server.h"
-DWORD WINAPI connection_handler(void *args)
+DWORD WINAPI ConnectionHandler(void *args)
 {
-    args_t *arg = (args_t*) args;
+    argsT *arg = (argsT*) args;
 
     //Get the socket descriptor
-    int csocket = arg->socket;
-    int user_id = nextUser;
+    int userId = nextUser;
 
-    users[user_id].socket = arg->socket;
-    users[user_id].id = nextUser;
-    users[user_id].ip = arg->ip;
-    users[user_id].port = arg->port;
-    users[user_id].forum = "";
+    users[userId].socket = arg->socket;
+    users[userId].id = nextUser;
+    users[userId].ip = arg->ip;
+    users[userId].port = arg->port;
+    users[userId].forum = "";
 
     nextUser = nextUser + 1;
     while(TRUE){
-        char *buffer;
+        char buffer[BUFFLEN];
         int len = 0;
-start:  free(buffer);
-        len = readn(csocket,&buffer);
+start:  len = ReadBytes(users[userId].socket,buffer);
         if(len == -1)
         {
            return;
         }
-
-        if(!(strlen(buffer) != 0))
+        if(!(strnlen(buffer,MAXCOUNT) != 0))
             goto start;
         printf("decoding [%s]\n",buffer);
+        char *command,*argument,*saveptr;
+        int icommand;
 
-        struct command com;
-        char *token;
-        char *rest = buffer;
-
-        if(token = strtok_r(rest, " ", &rest))
-            com._command = atoi(token);
-        token = strtok_r(rest, " ", &rest);
-        //printf("int of command:[%d] string command:[%s] token:[%s]\n", com._command, token);
-
-        switch(com._command){
+        if(command = strtok_r(buffer," ",&saveptr))
+            icommand = atoi(command);
+        argument = strtok_r(NULL," ",&saveptr);
+        switch(icommand){
          case CREATE:{
-            int n = CreateFunction(users[user_id].socket, token);
+            int n = CreateFunction(users[userId].socket,argument);
             break;
          }
         case DISPLAY:
         {
-            int n = DisplayFunction(users[user_id].socket);
+            int n = DisplayFunction(users[userId].socket);
             break;
         }
         case ONLINE:
         {
-            int n = OnlineFunction(users[user_id].socket, users[user_id].name);
+            int n = OnlineFunction(users[userId].socket,users[userId].name);
             break;
         }
          case HELP:  {
-            int n = HelpFunction(users[user_id].socket,users[user_id].name);
+            int n = HelpFunction(users[userId].socket,users[userId].name);
             break;
          }
          case NAME:{
-            int n = NameFunction(users[user_id].socket,&users[user_id].name, token);
-            printf("User [%s] loged in.\n",users[user_id].name);
+            int n = NameFunction(users[userId].socket,&users[userId].name,argument);
+            printf("User [%s] loged in.\n",users[userId].name);
             break;
         }
          case OPEN:{
-            com._key = -1;
-            for(int i = 0;i < forumsCount;i++)
-                if(strcmp(forums[i], token) == 0)
-                    com._key = i;
-
-            if(com._key != -1)
-            {
-                users[user_id].forum = forums[com._key];
-
-                printf("User [%s] opened forum [%s]\n",users[user_id].name,users[user_id].forum);
-
-                int n = SendBytes( users[user_id].socket, users[user_id].forum);
-
-                if (n < 0) {
-                    perror("ERROR writing to socket\n");
-                    return 0;
-                }
-                char *file_name = concatStrings(token,".txt");
-
-                char *msg = readfromfile(file_name);
-
-                n = SendBytes(users[user_id].socket, msg);
-
-                if (n < 0) {
-                    perror("ERROR writing to socket\n");
-                    return 0;
-                }
-                while(TRUE)
-                {
-                    char message[BUFFLEN];
-                    int n = ReadBytes(users[user_id].socket,message);
-                    if(n < 0)
-                        break;
-                    if(strcmp(message,"--quit") == 0)
-                    {
-                        users[user_id].forum = "";
-                        break;
-                    }
-                    else
-                    {
-                        printf("Message [%s] from user:[%s]\n",message,users[user_id].name);
-
-                        char *file_name = concatStrings(forums[com._key],".txt");
-
-                        WriteMessageToFile(file_name,message);
-
-                        for(int i = 0;i < usersOnline;i++)
-                            if(strcmp(users[i].forum,token) == 0)
-                            {
-                                if(users[i].id != user_id)
-                                {
-                                    int n = send(users[i].socket,message, strlen(message),0);
-                                    if (n < 0) {
-                                        perror("ERROR writing to socket\n");
-                                        return 0;
-                                    }
-                                }
-                            }
-                    }
-                }
-            }
-            else
-            {
-                char *msg = "error";
-                printf("Forum [%s] doesnt exist.\n",token);
-
-                int n = send(csocket, msg, strlen(msg),0);
-
-                if (n < 0) {
-                    perror("ERROR writing to socket\n");
-                    return 0;
-                }
-            }
+            int n = OpenFunction(userId,argument);
             break;
         }
          case QUIT:{
-            QuitFunction(users[user_id].socket, users[user_id].name, user_id );
-            return user_id;
+            QuitFunction(users[userId].socket,users[userId].name,userId );
+            return userId;
          }
          case FORUMS:{
-           int n = ForumsFunction(users[user_id].socket, users[user_id].name);
+           int n = ForumsFunction(users[userId].socket,users[userId].name);
             break;
          }
          default:    {
@@ -152,141 +73,128 @@ start:  free(buffer);
     }
     }
 }
-int NameFunction(int socket, char **user_name, char *name)
+int NameFunction(int socket,char **userName,char *name)
 {
     if(CheckConnectedUser(name) > 0)
     {
-        printf("[%s] authorized\n", name);
-        char *newString = (char *)malloc(strlen(name));
+        printf("[%s] authorized\n",name);
+        char *newString = (char *)malloc(strnlen(name,MAXCOUNT));
         strcpy(newString,name);
-        *user_name = newString;
+        *userName = newString;
 
         char cmd[BUFFLEN];
-        itoa(NAME, cmd,10);
-
-        int n = SendBytes(socket, cmd);
-
-        printf("[%s] authorized\n", name);
+        itoa(NAME,cmd,10);
+        int n = SendBytes(socket,cmd);
+        printf("[%s] authorized,socket:[%d]\n",name,socket);
         return n;
     }
     char cmd[BUFFLEN];
-    itoa(UNAME, cmd,10);
-    int n = SendBytes(socket, cmd);
+    itoa(UNAME,cmd,10);
+    int n = SendBytes(socket,cmd);
     return -1;
 }
-int CheckConnectedUser(char *name)
+int LoadRegisteredUsers()
 {
+    int count = 0;
     FILE *fp;
-    if ((fp=fopen("users.txt", "r") ) == NULL) {
+    if ((fp=fopen("users.txt","r") ) == NULL) {
         printf("Cannot open file.\n");
         return 1;
     }
 
-    char tmp[256];
-    while(fgets(tmp, sizeof tmp, fp)) {
-        tmp[strlen(tmp) - 1] = '\0';
-        if(strcmp(tmp, name) == 0)
-        {
-            fclose(fp);
-            return 1;
-        }
+    char tmp[BUFFLEN];
+    while(fgets(tmp,sizeof tmp,fp)) {
+        char *newString = (char *)malloc(strnlen(tmp,MAXCOUNT));
+        strcpy(newString,tmp);
+        newString[strnlen(newString,MAXCOUNT) - 1] = '\0';
+        reged[count++].Name = newString;
+        printf("User [%d] name[%s]\n",count - 1,reged[count - 1].Name);
     };
 
     fclose(fp);
+    return count;
+}
+int CheckConnectedUser(char *name)
+{
+    for(int i = 0; i < registeredUsers;i++)
+        if(strcmp(reged[i].Name,name) == 0)
+            return 1;
     return -1;
 }
 
-int HelpFunction(int csocket, char *name)
+int HelpFunction(int socket,char *name)
 {
-    char *msg = readfromfile("help.txt");
-
-    int n = send(csocket, msg, strlen(msg),0);
-
+    char *msg = ReadFromFile("help.txt");
+    int n = SendBytes(socket,msg);
     if (n < 0) {
         perror("ERROR writing to socket\n");
         return -1;
     }
     free(msg);
-
     printf("Help sent to user:[%s]\n",name);
     return 1;
 }
 
-void QuitFunction(int socket, char *name, int user_id)
+void QuitFunction(int socket,char *name,int userId)
 {
     printf("Closing connection to [%s]\n",name);
-
     char msg[] = "quit";
-
-    int n = send(socket, msg, strlen(msg),0);
-
+    int n = SendBytes(socket,msg);
     if (n < 0) {
         perror("ERROR writing to socket\n");
         return 0;
     }
     usersOnline = usersOnline - 1;
-
     closesocket(socket);
-
-    nextUser = user_id;
-
-    users[user_id] = ClearUser;
-
+    nextUser = userId;
+    users[userId] = ClearUser;
     free(msg);
-
     closesocket(socket);
 }
 
-int ForumsFunction(int csocket, char *name)
+int ForumsFunction(int socket,char *name)
 {
-    int intSend = SendInt(csocket, forumsCount);
-
+    int intSend = SendInt(socket,forumsCount);
     for(int i = 0; i < forumsCount;i++)
     {
         printf("Sending forums:[%s]\n",forums[i]);
-        intSend = SendBytes(csocket,forums[i]);
+        intSend = SendBytes(socket,forums[i]);
     }
-    printf("list of forums has been sent to user:[%s]\n", name);
+    printf("list of forums has been sent to user:[%s]\n",name);
     return 1;
 }
-int OnlineFunction(int csocket, char *name)
+int OnlineFunction(int socket,char *name)
 {
-    int intSend = SendInt(csocket, nextUser);
-
+    int intSend = SendInt(socket,nextUser);
     for(int i = 0; i < nextUser;i++)
     {
         printf("Sending forums:[%s]\n",users[i].name);
-        int n = SendBytes(csocket,users[i].name);
+        int n = SendBytes(socket,users[i].name);
     }
-    printf("list of users online has been sent to user:[%s]\n", name);
+    printf("list of users online has been sent to user:[%s]\n",name);
     return 1;
 }
-int CreateFunction(int csocket, char *token )
+int CreateFunction(int socket,char *argument )
 {
+    char msg[] = "Forums already exists!";
+    char *fileName;
+    void *newString;
+    int n;
+
     printf("in create\n");
     for(int i = 0; i < forumsCount;i++)
     {
-        if(forums[i] == token){
-
-            char msg[] = "Forums already exists!";
-
-            int n = send(csocket, msg, strlen(msg),0);
-
+        if(forums[i] == argument){
+            n = SendBytes(socket,msg);
             if (n < 0) {
                 perror("ERROR writing to socket\n");
                 return -1;
             }
         }
     }
-
-    printf("check on exist done\n");
-
-    void *newString = malloc(strlen(token));
-
-    strcpy(newString,token);
-
+    newString = malloc(strnlen(argument,MAXCOUNT));
+    strcpy(newString,argument);
     forums[forumsCount++] = newString;
-
     for(int i = 0; i < forumsCount;i++)
          printf("forum[%d] [%s]\n",i,forums[i]);
 
@@ -296,16 +204,14 @@ int CreateFunction(int csocket, char *token )
         printf("Error opening file!\n");
         return -2;
     }
-    fprintf(f, token);
-    fprintf(f, "\n");
+    fprintf(f,argument);
+    fprintf(f,"\n");
     fclose(f);
 
-    printf("Forum [%s] added to forum list.\n",token);
-
-    char *file_name = concatStrings(token,".txt");
-
-    f = fopen(file_name ,"w");
-
+    printf("Forum [%s] added to forum list.\n",argument);
+    fileName = ConcatStrings(argument,".txt");
+    f = fopen(fileName ,"w");
+    free(fileName);
     if (f == NULL)
     {
         printf("Error opening file!\n");
@@ -317,45 +223,105 @@ int CreateFunction(int csocket, char *token )
 }
 int DisplayFunction(int socket)
 {
-    int intSend = SendInt(socket, forumsCount);
+    char *fileName,tmp[BUFFLEN];
+    int n,lines,intSend;
 
-    int n = 0;
-    char *file_name;
-    int lines = 0;
-    char tmp[BUFFLEN];
+    intSend = SendInt(socket,forumsCount);
     for(int i = 0; i < forumsCount;i++)
     {
-        printf("forum prepared to send[%s]\n",forums[i]);
         n = SendBytes(socket,forums[i]);
-
-        file_name = concatStrings(forums[i],".txt");
-
-        lines = readlinesfromfile(file_name);
-
-        intSend = SendInt(socket, lines);
-
-        printf("openning file[%s]\n",file_name);
+        fileName = ConcatStrings(forums[i],".txt");
+        lines = ReadLinesFromFile(fileName);
+        free(fileName);
+        intSend = SendInt(socket,lines);
         FILE *fp;
-        if ((fp = fopen(file_name, "r") ) == NULL) {
+        if ((fp = fopen(fileName,"r") ) == NULL) {
             printf("Cannot open file.\n");
             return -1;
         }
-
-        printf("Sending context of file[%s] with [%d] lines\n",file_name,lines);
-
+        printf("Sending context of file[%s] with [%d] lines\n",fileName,lines);
         for(int j = 0; j < lines;j++)
         {
-            fgets(tmp, sizeof tmp, fp);
-            if(strlen(tmp) > 0)
+            fgets(tmp,sizeof tmp,fp);
+            if(strnlen(tmp,MAXCOUNT) > 0)
             {
-                tmp[strlen(tmp) - 1] = '\0';
+                tmp[strnlen(tmp,MAXCOUNT) - 1] = '\0';
                 printf("Sending [%s]\n",tmp);
-
                 n = SendBytes(socket,tmp);
             }
         }
         fclose(fp);
-        printf("file closed[%s]\n",file_name);
+        printf("file closed[%s]\n",fileName);
     }
     return 1;
+}
+int OpenFunction(int userId,char *argument)
+{
+    char *fileName,message[BUFFLEN],*msg;
+    int n;
+    int forum = -1;
+
+    for(int i = 0;i < forumsCount;i++)
+        if(strcmp(forums[i],argument) == 0)
+            forum = i;
+
+    if(forum != -1)
+    {
+        users[userId].forum = forums[forum];
+        printf("User [%s] opened forum [%s]\n",users[userId].name,users[userId].forum);
+        n = SendBytes( users[userId].socket,users[userId].forum);
+        if (n < 0) {
+            perror("ERROR writing to socket\n");
+            return 0;
+        }
+        fileName = ConcatStrings(argument,".txt");
+        msg = ReadFromFile(fileName);
+        n = SendBytes(users[userId].socket,msg);
+        free(msg);
+        if (n < 0) {
+            perror("ERROR writing to socket\n");
+            return 0;
+        }
+        while(TRUE)
+        {
+            n = ReadBytes(users[userId].socket,message);
+            if(n < 0)
+                break;
+            if(strcmp(message,"--quit") == 0)
+            {
+                users[userId].forum = "";
+                free(fileName);
+                break;
+            }
+            else
+            {
+                printf("Message [%s] from user:[%s]\n",message,users[userId].name);
+                fileName = ConcatStrings(forums[forum],".txt");
+                WriteMessageToFile(fileName,message);
+                free(fileName);
+                for(int i = 0;i < usersOnline;i++)
+                    if(strcmp(users[i].forum,argument) == 0)
+                    {
+                        if(users[i].id != userId)
+                        {
+                            n = SendBytes(users[i].socket,message);
+                            if (n < 0) {
+                                perror("ERROR writing to socket\n");
+                                return 0;
+                            }
+                        }
+                    }
+            }
+        }
+    }
+    else
+    {
+        char *msg = "error";
+        printf("Forum [%s] doesnt exist.\n",argument);
+        int n = SendBytes(users[userId].socket,msg);
+        if (n < 0) {
+            perror("ERROR writing to socket\n");
+            return 0;
+        }
+    }
 }

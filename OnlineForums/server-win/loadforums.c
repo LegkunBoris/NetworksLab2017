@@ -1,6 +1,6 @@
 #include "server.h"
-
-int loadForums(){
+int LoadForums(){
+    char tmp[BUFFLEN];
     int count = 0;
 
     FILE *fp;
@@ -8,36 +8,12 @@ int loadForums(){
         printf("%s %d","OpenErrorCode",1);
         return 1;
     }
-
-    char tmp[BUFFLEN];
-
-    int num_chars = 0;
-
-    int ch;
-
-    while ((ch = fgetc(fp))!= EOF){
-        if(ch != '\n')
-            tmp[num_chars++] = ch;
-        else{
-            tmp[num_chars] = '\0';
-
-            char *newString = (char *)malloc(num_chars);
-
-            strcpy(newString,tmp);
-
-            newString[strlen(newString)] = '\0';
-
-            forums[count] = newString;
-
-            printf("forums[%d] [%s] added\n",count,forums[count]);
-
-            memset(tmp,0,strlen(tmp));
-
-            num_chars = 0;
-
-            count++;
-        }
-    }
+    while(fgets(tmp, sizeof tmp, fp)) {
+        char *newString = (char *)malloc(strlen(tmp));
+        strcpy(newString,tmp);
+        newString[strlen(newString) - 1] = '\0';
+        forums[count++] = newString;
+    };
     fclose(fp);
     return count;
 }
